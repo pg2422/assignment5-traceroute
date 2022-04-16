@@ -69,6 +69,7 @@ def get_route(hostname):
     reached_dest = False
     for ttl in range(1,MAX_HOPS):
         result_times = []
+        reply_addr = None
         resolved_hostname = "Request timed out."
         for tries in range(TRIES):
             destAddr = gethostbyname(hostname)
@@ -98,6 +99,7 @@ def get_route(hostname):
 
             else:
                 #Fetch the icmp type from the IP packet
+                reply_addr = addr[0]
                 types = struct.unpack("b", recvPacket[20:21])[0]
                 
                 try: 
@@ -105,7 +107,7 @@ def get_route(hostname):
                     resolved_hostname = gethostbyaddr(addr[0])[0]
                 except herror:   
                     #if the host does not provide a hostname
-                    resolved_hostname = addr[0]
+                    resolved_hostname = "hostname not returnable"
 
                 if types == 11:
                     bytes = struct.calcsize("d")
@@ -133,6 +135,9 @@ def get_route(hostname):
                 
         cur_trace = [str(ttl)]
         cur_trace.extend(result_times)
+        if (reply_addr is not None):
+          cur_trace.append(reply_addr)
+          
         cur_trace.append(resolved_hostname)
         
         tracelist.append(cur_trace)
@@ -143,4 +148,4 @@ def get_route(hostname):
     return tracelist
 
 if __name__ == '__main__':
-    get_route("google.co.il")
+    print(get_route("google.co.il"))
